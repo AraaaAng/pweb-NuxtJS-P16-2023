@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  ssr: false,
   nitro: {
     prerender: {
       routes: ["/"],
@@ -12,6 +12,9 @@ export default defineNuxtConfig({
     "@/assets/default.scss", // path to your style.css file
   ],
   modules: ["@pinia/nuxt"],
+  pinia: {
+    autoImports: ["defineStore"],
+  },
   postcss: {
     plugins: {
       tailwindcss: {},

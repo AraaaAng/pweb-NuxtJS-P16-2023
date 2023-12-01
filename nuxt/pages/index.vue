@@ -150,12 +150,28 @@
               class="flex gap-6 flex-wrap flex-col items-start lg:justify-center"
             >
               <div class="flex flex-wrap flex-col items-start gap-2">
-                <h2 class="text-4xl font-bold">Relax, you’re home!</h2>
+                <h2 class="text-4xl font-bold">100,000</h2>
                 <p class="max-w-md">
-                  All our supported hardware includes traditional inputs so you
-                  can integrate our products into your house in a way that’s
-                  best for everyone.
+                  100,000 of our customers have liked our product, how much do
+                  you like our product?
                 </p>
+                <div role="button" class="btn btn-ghost" style="color: #fbd914">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="16"
+                    width="16"
+                    viewBox="0 0 512 512"
+                    @click="store.increment"
+                  >
+                    <path
+                      fill="#fbd914"
+                      d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
+                    />
+                  </svg>
+
+                  <p>{{ store.count }}</p>
+                  <!-- SVG icon -->
+                </div>
               </div>
             </div>
             <img src="../assets/imgs/table.png" alt="Table" />
@@ -241,48 +257,37 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import axios from "axios";
-import Navbar from "@/components/Navbar.vue";
-import Footer from "@/components/Footer.vue";
+import { useCounterStore } from "@/store/index";
 
-export default {
-  components: {
-    Navbar,
-    Footer,
-  },
-  data() {
-    return {
-      blogData: [], // Array to store multiple blog posts
-      searchQuery: "", // To store the search query
-      originalData: [], // To store original blog data for resetting search
-    };
-  },
-  mounted() {
-    this.fetchBlogData(); // Fetch initial blog data
-  },
-  methods: {
-    // Fetch blog data from API
-    fetchBlogData() {
-      axios
-        .get("http://localhost:8000/api/blog")
-        .then((response) => {
-          const fetchedPosts = response.data.docs;
-          this.blogData = fetchedPosts.map((blog) => ({
-            id: blog.id,
-            title: blog.Title,
-            content: blog.Content,
-            image: blog.Image,
-            price: blog.Price,
-          }));
-        })
-        .catch((error) => {
-          console.error("Error fetching blog data:", error);
-        });
-    },
-    // Perform search based on blog title
-  },
+// Fungsi untuk mengambil data asinkron
+const fetchData = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/Blog");
+    const fetchedPosts = response.data.docs;
+
+    // Mapping data ke dalam format yang diinginkan
+    const formattedData = fetchedPosts.map((blog) => ({
+      id: blog.id,
+      title: blog.Title,
+      content: blog.Content,
+      image: blog.Image,
+      price: blog.Price, // Jika Price ada dalam data
+    }));
+
+    return formattedData;
+  } catch (error) {
+    console.error("Error fetching data: ", error);
+    return []; // Mengembalikan array kosong jika terjadi error
+  }
 };
+
+// Menggunakan asynchronous data dan mendapatkan responsenya
+const { data: blogData, error } = useAsyncData(fetchData);
+
+// Mendapatkan akses ke store
+const store = useCounterStore();
 </script>
 
 <style lang="scss" scoped>

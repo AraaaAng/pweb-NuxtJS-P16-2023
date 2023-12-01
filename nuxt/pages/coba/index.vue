@@ -3,46 +3,41 @@
     <navbar></navbar>
     <div>
       <!-- Hero -->
-
-      <!-- Search Input -->
-      <div class="flex justify-end mr-10">
-        <div class="relative mt-10 rounded-md shadow-sm">
-          <input
-            v-model="searchQuery"
-            @input="performSearch"
-            type="text"
-            placeholder="Type here"
-            class="input input-bordered w-full max-w-xs text-blue-700"
-          />
+      <div>
+        <div class="flex justify-end mr-10">
+          <div class="relative mt-10 rounded-md shadow-sm">
+            <input
+              type="text"
+              v-model="searchKeyword"
+              placeholder="Search Blogs"
+              class="input input-bordered w-full max-w-xs text-blue-700"
+            />
+          </div>
         </div>
       </div>
-
-      <!-- Display Blog Posts -->
       <div class="container movies">
         <div id="movie-grid" class="movies-grid">
+          <div v-if="blogs === null">Fetching data on client ...</div>
           <div
             class="movie card w-50 bg-base-100 shadow-xl"
-            v-for="(post, index) in blogData"
-            :key="index"
+            v-for="blog in filteredBlogs"
+            :key="blog.id"
           >
             <div class="card-body" style="background-color: #fbd914">
               <div class="movie-img">
-                <img :src="post.image" alt="Blog Image" />
-                <p class="overview">
-                  {{ post.content }}
-                </p>
+                <img :src="blog.image" alt="Blog Image" />
+                <p class="overview">{{ blog.content }}</p>
               </div>
 
               <div class="info">
-                <p class="title">{{ post.title }}</p>
-                <p class="release">{{ post.price }}</p>
-                <NuxtLink
+                <p class="title">{{ blog.title }}</p>
+                <p class="release">{{ blog.price }}</p>
+                <a
                   class="btn btn-primary"
                   style="color: #fbd914"
-                  :to="`/coba/${post.id}`"
+                  :href="'/coba/' + blog.id"
+                  >Detail Blog</a
                 >
-                  Detail Blog
-                </NuxtLink>
               </div>
             </div>
           </div>
@@ -52,59 +47,52 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import Navbar from "@/components/Navbar.vue"; //
+import Navbar from "@/components/Navbar.vue";
 
-export default {
-  components: {
-    Navbar,
-  },
-  data() {
-    return {
-      blogData: [], // Array to store multiple blog posts
-      searchQuery: "", // To store the search query
-      originalData: [], // To store original blog data for resetting search
-    };
-  },
-  mounted() {
-    this.fetchBlogData(); // Fetch initial blog data
-  },
-  methods: {
-    // Fetch blog data from API
-    fetchBlogData() {
-      axios
-        .get("http://localhost:8000/api/blog")
-        .then((response) => {
-          const fetchedPosts = response.data.docs;
-          this.blogData = fetchedPosts.map((blog) => ({
-            id: blog.id,
-            title: blog.Title,
-            content: blog.Content,
-            image: blog.Image,
-            price: blog.Price,
-          }));
-          this.originalData = [...this.blogData]; // Store original data for reset
-        })
-        .catch((error) => {
-          console.error("Error fetching blog data:", error);
-        });
-    },
-    // Perform search based on blog title
-    performSearch() {
-      const query = this.searchQuery.toLowerCase().trim();
-      if (query === "") {
-        // If search query is empty, reset data to original
-        this.blogData = [...this.originalData];
-      } else {
-        // Filter blog posts based on search query
-        this.blogData = this.originalData.filter((post) =>
-          post.title.toLowerCase().includes(query)
-        );
-      }
-    },
-  },
-};
+const blogs = ref(null);
+const searchKeyword = ref("");
+
+onMounted(async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/Blog");
+    const fetchedData = response.data.docs;
+
+    const mappedData = fetchedData.map((blog) => ({
+      id: blog.id,
+      title: blog.Title,
+      content: blog.Content,
+      image: blog.Image,
+      price: blog.Price, // Jika Price ada dalam data
+    }));
+
+    blogs.value = mappedData;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+});
+
+const filteredBlogs = computed(() => {
+  if (!blogs.value) {
+    return [];
+  }
+
+  return blogs.value.filter((blog) => {
+    const titleMatches = blog.title
+      .toLowerCase()
+      .includes(searchKeyword.value.toLowerCase());
+    const contentMatches = blog.content
+      .toLowerCase()
+      .includes(searchKeyword.value.toLowerCase());
+
+    return titleMatches || contentMatches;
+  });
+});
+
+// Fungsi untuk mengembalikan nilai blogs agar bisa diakses dari komponen Vue Anda
+const getBlogs = () => blogs.value;
 </script>
 
 <style lang="scss" scoped>

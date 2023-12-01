@@ -56,12 +56,5 @@
         </li>
       </ul>
     </div>
-    <div class="navbar-end">
-      <a
-        class="font-black btn btn-ghost"
-        style="color: #fbd914; font-size: 0.8em"
-        >Button</a
-      >
-    </div>
   </div>
 </template>
