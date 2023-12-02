@@ -1,7 +1,6 @@
 <template>
   <div>
     <Navbar></Navbar>
-    <!-- back button -->
     <div style="padding: 32px 16px" class="text-center mr-10">
       <NuxtLink
         class="btn btn-warning"
@@ -12,7 +11,6 @@
       </NuxtLink>
     </div>
 
-    <!-- detail blog -->
     <div class="single-movie container">
       <div
         style="background-color: #fbd914"
@@ -29,11 +27,16 @@
             </p>
           </div>
         </div>
+
+        <div v-else class="error-message " style="text-align: center;color: #0058ab">
+          <img src="https://cdni.iconscout.com/illustration/premium/thumb/no-data-found-9887654-8019228.png"><br>
+          <b>Waduh Error Mazeh.</b>
+        </div>
       </div>
     </div>
+
     <Footer></Footer>
   </div>
-  <!-- Movie Info -->
 </template>
 
 <script>
@@ -48,21 +51,17 @@ export default {
   },
   data() {
     return {
-      blogDetails: null, // To store the details of a specific blog
+      blogDetails: null,
     };
   },
   async mounted() {
-    // Fetch blog details based on the ID from the route params
     await this.fetchBlogDetails();
   },
   methods: {
     async fetchBlogDetails() {
-      const blogId = this.$route.params.id; // Get the blog ID from route params
-
       try {
-        const response = await axios.get(
-          `http://localhost:8000/api/blog/${blogId}`
-        );
+        const blogId = this.$route.params.id;
+        const response = await axios.get(`http://localhost:8000/api/blog/${blogId}`);
         const blogData = response.data;
 
         this.blogDetails = {
@@ -73,8 +72,18 @@ export default {
         };
       } catch (error) {
         console.error("Error fetching blog details:", error);
+        // Rethrow the error to trigger the errorCaptured hook in parent components
+        throw error;
       }
     },
+  },
+  errorCaptured(err, vm, info) {
+    console.error("Error captured in component:", err);
+    // Log more information about the error
+    console.error("Component:", vm);
+    console.error("Error info:", info);
+    // Return false to stop the error from propagating further
+    return false;
   },
 };
 </script>
